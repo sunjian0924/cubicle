@@ -4,12 +4,18 @@ var fs = require('fs');
 var json2csv = require('json2csv');
 
 
-var csvPrint = function(schedule) {
+var csvPrint = function(schedule, date) {
     json2csv({data: schedule, fields: ["time", "location", "course", "consultant", "clients"]}, function(err, csv) {
         if (err)  {
             console.log(err);
         }
-        console.log(csv);
+        fs.writeFile("output/" + date + ".csv", csv, function(err) {
+            if(err) {
+                console.log(err);
+            } else {
+                console.log("The file was saved!");
+            }
+        }); 
     });
 }
 
@@ -135,6 +141,11 @@ var finalSchedule = function(schedule) {
     return result;
 }
 
+var getDate = function(rawDate) {
+    var temp = rawDate.split('/');
+    return temp[0] + '.' + temp[1] + '.' + temp[2];
+}
+
 fs.readFile('input/input.html', {"encoding" : "utf8" }, function(err, data) {
     if (err) throw err;
     jsdom.env({
@@ -153,10 +164,11 @@ fs.readFile('input/input.html', {"encoding" : "utf8" }, function(err, data) {
             });
             // get rid of the first element
             myTableArray.splice(0, 1);
-            
             var schedule = rawSchedule(myTableArray);
             schedule = finalSchedule(schedule);
-            csvPrint(schedule);
+
+            var date = getDate(myTableArray[0][0]);
+            csvPrint(schedule, date);
         }
     });
 });
